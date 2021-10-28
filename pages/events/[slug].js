@@ -1,3 +1,6 @@
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+import { useRouter } from "next/router";
 import Link from "next/link";
 import Image from "next/image";
 import { FaPencilAlt, FaTimes } from "react-icons/fa";
@@ -6,8 +9,25 @@ import { API_URL } from "@/config/index";
 import styles from "@/styles/Event.module.css";
 
 const EventPage = ({ evt }) => {
-    const deleteEvent = (e) => {
-        console.log("delete");
+    const router = useRouter();
+
+    const deleteEvent = async (e) => {
+        if (confirm("Are you sure?")) {
+            const res = await fetch(`${API_URL}/events/${evt.id}`, {
+                method: "DELETE"
+            });
+
+            if (!res.ok) {
+                toast.error("Oops, something went wrong!");
+            }
+
+            router.push("/events");
+        }
+    };
+
+    const goBack = (e) => {
+        e.preventDefault();
+        router.back();
     };
 
     return (
@@ -25,14 +45,16 @@ const EventPage = ({ evt }) => {
                 </div>
 
                 <span>
-                    {evt.date} at {evt.time}
+                    {new Date(evt.date).toLocaleDateString("en-GB")} at {evt.time}
                 </span>
 
                 <h1>{evt.name}</h1>
 
+                <ToastContainer />
+
                 <div className={styles.image}>
                     <Image
-                        src={evt.image ? evt.image : "/images/event-default.png"}
+                        src={evt.image ? evt.image.formats.medium.url : "/images/event-default.png"}
                         width={960}
                         height={600}
                         alt="Image of the event"
@@ -48,8 +70,10 @@ const EventPage = ({ evt }) => {
                 <h3>Venue: {evt.venue}</h3>
                 <p>{evt.address}</p>
 
-                <Link href="/events">
-                    <a className={styles.back}>{"<"} Go back</a>
+                <Link href="#">
+                    <a onClick={goBack} className={styles.back}>
+                        {"<"} Go back
+                    </a>
                 </Link>
             </div>
         </Layout>
@@ -57,7 +81,7 @@ const EventPage = ({ evt }) => {
 };
 
 export const getStaticPaths = async () => {
-    const res = await fetch(`${API_URL}/api/events`);
+    const res = await fetch(`${API_URL}/events`);
     const events = await res.json();
 
     const paths = events.map((evt) => ({
@@ -71,7 +95,7 @@ export const getStaticPaths = async () => {
 };
 
 export const getStaticProps = async ({ params: { slug } }) => {
-    const res = await fetch(`${API_URL}/api/events/${slug}`);
+    const res = await fetch(`${API_URL}/events?slug=${slug}`);
     const events = await res.json();
 
     return {
