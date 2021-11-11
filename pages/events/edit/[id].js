@@ -1,7 +1,6 @@
 import moment from "moment";
 import { FaImage } from "react-icons/fa";
-import { ToastContainer, toast } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css";
+import toast, { Toaster } from "react-hot-toast";
 import { useState } from "react";
 import { useRouter } from "next/router";
 import Link from "next/link";
@@ -35,21 +34,22 @@ const EditEventPage = ({ evt }) => {
 
         if (hasEmptyFields) {
             toast.error("Please fill in all the fields!");
-        } else {
-            const res = await fetch(`${API_URL}/events/${evt.id}`, {
-                method: "PUT",
-                headers: {
-                    "Content-Type": "application/json"
-                },
-                body: JSON.stringify(values)
-            });
+            return;
+        }
 
-            if (!res.ok) {
-                toast.error("Oops, something went wrong!");
-            } else {
-                const evt = await res.json();
-                router.push(`/events/${evt.slug}`);
-            }
+        const res = await fetch(`${API_URL}/events/${evt.id}`, {
+            method: "PUT",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify(values)
+        });
+
+        if (!res.ok) {
+            toast.error("Oops, something went wrong!");
+        } else {
+            const evt = await res.json();
+            router.push(`/events/${evt.slug}`);
         }
     };
 
@@ -67,8 +67,10 @@ const EditEventPage = ({ evt }) => {
 
     return (
         <Layout title="Edit event">
+            <div>
+                <Toaster position="bottom-center" />
+            </div>
             <h1>Edit an existing event</h1>
-            <ToastContainer />
 
             <form onSubmit={handleSubmit} className={styles.form}>
                 <div className={styles.grid}>
@@ -152,9 +154,11 @@ const EditEventPage = ({ evt }) => {
     );
 };
 
-export const getServerSideProps = async ({ params: { id } }) => {
+export const getServerSideProps = async ({ params: { id }, req }) => {
     const res = await fetch(`${API_URL}/events/${id}`);
     const evt = await res.json();
+
+    console.log(req.headers.cookie);
 
     return {
         props: {

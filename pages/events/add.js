@@ -1,5 +1,4 @@
-import { ToastContainer, toast } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css";
+import toast, { Toaster } from "react-hot-toast";
 import { useState } from "react";
 import { useRouter } from "next/router";
 import Link from "next/link";
@@ -28,21 +27,22 @@ const AddEventPage = () => {
 
         if (hasEmptyFields) {
             toast.error("Please fill in all the fields!");
-        } else {
-            const res = await fetch(`${API_URL}/events`, {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json"
-                },
-                body: JSON.stringify(values)
-            });
+            return;
+        }
 
-            if (!res.ok) {
-                toast.error("Oops, something went wrong!");
-            } else {
-                const evt = await res.json();
-                router.push(`/events/${evt.slug}`);
-            }
+        const res = await fetch(`${API_URL}/events`, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify(values)
+        });
+
+        if (!res.ok) {
+            toast.error("Oops, something went wrong!");
+        } else {
+            const evt = await res.json();
+            router.push(`/events/${evt.slug}`);
         }
     };
 
@@ -57,8 +57,10 @@ const AddEventPage = () => {
 
     return (
         <Layout title="Add Event">
+            <div>
+                <Toaster position="bottom-center" />
+            </div>
             <h1>Add an event</h1>
-            <ToastContainer />
             <form onSubmit={handleSubmit} className={styles.form}>
                 <div className={styles.grid}>
                     <div>

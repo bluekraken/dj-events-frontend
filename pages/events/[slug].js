@@ -1,5 +1,4 @@
-import { ToastContainer, toast } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css";
+import toast, { Toaster } from "react-hot-toast";
 import { useRouter } from "next/router";
 import Link from "next/link";
 import Image from "next/image";
@@ -32,6 +31,9 @@ const EventPage = ({ evt }) => {
 
     return (
         <Layout>
+            <div>
+                <Toaster position="bottom-center" />
+            </div>
             <div className={styles.event}>
                 <div className={styles.controls}>
                     <Link href={`/events/edit/${evt.id}`}>
@@ -49,8 +51,6 @@ const EventPage = ({ evt }) => {
                 </span>
 
                 <h1>{evt.name}</h1>
-
-                <ToastContainer />
 
                 <div className={styles.image}>
                     <Image
