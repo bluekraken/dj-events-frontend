@@ -5,13 +5,14 @@ import { useState } from "react";
 import { useRouter } from "next/router";
 import Link from "next/link";
 import Image from "next/image";
+import parseCookies from "@/helpers/index";
 import Layout from "@/components/Layout";
 import Modal from "@/components/Modal";
 import ImageUpload from "@/components/ImageUpload";
 import { API_URL } from "@/config/index";
 import styles from "@/styles/Form.module.css";
 
-const EditEventPage = ({ evt }) => {
+const EditEventPage = ({ evt, token }) => {
     const [values, setValues] = useState({
         name: evt.name,
         performers: evt.performers,
@@ -21,6 +22,7 @@ const EditEventPage = ({ evt }) => {
         time: evt.time,
         description: evt.description
     });
+
     const [imagePreview, setImagePreview] = useState(evt.image ? evt.image.formats.thumbnail.url : null);
     const [showModal, setShowModal] = useState(false);
 
@@ -40,17 +42,25 @@ const EditEventPage = ({ evt }) => {
         const res = await fetch(`${API_URL}/events/${evt.id}`, {
             method: "PUT",
             headers: {
-                "Content-Type": "application/json"
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${token}`
             },
             body: JSON.stringify(values)
         });
 
+        // 401 = Unauthorised, 403 = Forbidden
+        if (res.status === 401 || res.status === 403) {
+            toast.error("Not authorised!");
+            return;
+        }
+
         if (!res.ok) {
             toast.error("Oops, something went wrong!");
-        } else {
-            const evt = await res.json();
-            router.push(`/events/${evt.slug}`);
+            return;
         }
+
+        const updatedEvt = await res.json();
+        router.push(`/events/${updatedEvt.slug}`);
     };
 
     const handleInputChange = (e) => {
@@ -148,23 +158,24 @@ const EditEventPage = ({ evt }) => {
             </div>
 
             <Modal show={showModal} onClose={() => setShowModal(false)}>
-                <ImageUpload evtId={evt.id} imageUploaded={imageUploaded} />
+                <ImageUpload evtId={evt.id} imageUploaded={imageUploaded} token={token} />
             </Modal>
         </Layout>
     );
 };
 
-export const getServerSideProps = async ({ params: { id }, req }) => {
+export async function getServerSideProps({ params: { id }, req }) {
+    const { token } = parseCookies(req);
+
     const res = await fetch(`${API_URL}/events/${id}`);
     const evt = await res.json();
 
-    console.log(req.headers.cookie);
-
     return {
         props: {
-            evt
+            evt,
+            token
         }
     };
-};
+}
 
 export default EditEventPage;

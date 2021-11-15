@@ -10,20 +10,6 @@ import styles from "@/styles/Event.module.css";
 const EventPage = ({ evt }) => {
     const router = useRouter();
 
-    const deleteEvent = async (e) => {
-        if (confirm("Are you sure?")) {
-            const res = await fetch(`${API_URL}/events/${evt.id}`, {
-                method: "DELETE"
-            });
-
-            if (!res.ok) {
-                toast.error("Oops, something went wrong!");
-            }
-
-            router.push("/events");
-        }
-    };
-
     const goBack = (e) => {
         e.preventDefault();
         router.back();
@@ -35,17 +21,6 @@ const EventPage = ({ evt }) => {
                 <Toaster position="bottom-center" />
             </div>
             <div className={styles.event}>
-                <div className={styles.controls}>
-                    <Link href={`/events/edit/${evt.id}`}>
-                        <a>
-                            <FaPencilAlt /> Edit event
-                        </a>
-                    </Link>
-                    <a href="#" className={styles.delete} onClick={deleteEvent}>
-                        <FaTimes /> Delete event
-                    </a>
-                </div>
-
                 <span>
                     {new Date(evt.date).toLocaleDateString("en-GB")} at {evt.time}
                 </span>

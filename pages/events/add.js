@@ -2,11 +2,12 @@ import toast, { Toaster } from "react-hot-toast";
 import { useState } from "react";
 import { useRouter } from "next/router";
 import Link from "next/link";
+import parseCookies from "@/helpers/index";
 import Layout from "@/components/Layout";
 import { API_URL } from "@/config/index";
 import styles from "@/styles/Form.module.css";
 
-const AddEventPage = () => {
+const AddEventPage = ({ token }) => {
     const [values, setValues] = useState({
         name: "",
         performers: "",
@@ -33,17 +34,25 @@ const AddEventPage = () => {
         const res = await fetch(`${API_URL}/events`, {
             method: "POST",
             headers: {
-                "Content-Type": "application/json"
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${token}`
             },
             body: JSON.stringify(values)
         });
 
+        // 401 = Unauthorised, 403 = Forbidden
+        if (res.status === 401 || res.status === 403) {
+            toast.error("Not authorised!");
+            return;
+        }
+
         if (!res.ok) {
             toast.error("Oops, something went wrong!");
-        } else {
-            const evt = await res.json();
-            router.push(`/events/${evt.slug}`);
+            return;
         }
+
+        const evt = await res.json();
+        router.push(`/events/${evt.slug}`);
     };
 
     const handleInputChange = (e) => {
@@ -117,5 +126,15 @@ const AddEventPage = () => {
         </Layout>
     );
 };
+
+export async function getServerSideProps({ req }) {
+    const { token } = parseCookies(req);
+
+    return {
+        props: {
+            token
+        }
+    };
+}
 
 export default AddEventPage;
