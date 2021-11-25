@@ -1,5 +1,5 @@
-import parseCookies from "@/helpers/index";
 import { useRouter } from "next/router";
+import parseCookies from "@/helpers/index";
 import Layout from "@/components/Layout";
 import DashboardEvent from "@/components/DashboardEvent";
 import { API_URL } from "@/config/index";
